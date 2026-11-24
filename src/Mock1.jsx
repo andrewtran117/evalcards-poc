@@ -123,23 +123,23 @@ const DOMAINS = [
 ]
 
 const PROPERTIES = [
-  { name: 'Safety: harmful requests, jailbreaks & over-refusal', count: 28, sources: [] },
-  { name: 'Truthfulness, misconceptions & hallucination', count: 12, sources: ['A','L'] },
-  { name: 'Bias, stereotypes & toxicity', count: 9, sources: [] },
-  { name: 'Privacy & personal information', count: 5, sources: [] },
-  { name: 'Evaluating AI systems: reward models, LLM-as-judge', count: 5, sources: [] },
-  { name: 'Hazardous & dual-use knowledge', count: 3, sources: [] },
-  { name: 'Long context', count: 39, sources: ['E','A','L'] },
-  { name: 'Instruction following', count: 7, sources: ['A'] },
-  { name: 'Knowledge', count: null, sources: ['E','A'] },
-  { name: 'Reasoning: logical, commonsense, abstract', count: null, sources: ['E','L'] },
-  { name: 'Robustness & adversarial perturbation', count: null, sources: [] },
+  { name: 'Safety', fullName: 'Harmful requests, jailbreaks & over-refusal', count: 28, sources: [] },
+  { name: 'Truthfulness', fullName: 'Misconceptions & hallucination', count: 12, sources: ['A','L'] },
+  { name: 'Bias & Toxicity', fullName: 'Stereotypes & toxicity', count: 9, sources: [] },
+  { name: 'Privacy', fullName: 'Personal information', count: 5, sources: [] },
+  { name: 'AI Eval', fullName: 'Reward models, LLM-as-judge', count: 5, sources: [] },
+  { name: 'Hazardous Knowledge', fullName: 'Dual-use knowledge', count: 3, sources: [] },
+  { name: 'Long Context', fullName: 'Synthetic long context', count: 39, sources: ['E','A','L'] },
+  { name: 'Instruction Following', fullName: 'Instruction following', count: 7, sources: ['A'] },
+  { name: 'Knowledge', fullName: 'Knowledge retrieval & recall', count: null, sources: ['E','A'] },
+  { name: 'Reasoning', fullName: 'Logical, commonsense, abstract', count: null, sources: ['E','L'] },
+  { name: 'Robustness', fullName: 'Adversarial perturbation', count: null, sources: [] },
 ]
 
 const FACETS = {
-  Modality: ['Text', 'Image', 'Video', 'Audio & speech', 'Documents & charts', '3D'],
-  'Interaction style': ['Single-turn QA', 'Multi-turn conversation', 'Tool use', 'Agentic in an environment', 'Computer use'],
-  Language: ['English only', 'Multilingual', 'Specific non-English language(s)'],
+  Modality: ['Text', 'Image', 'Video', 'Audio & Speech', 'Documents & Charts', '3D'],
+  'Interaction Style': ['Single-turn QA', 'Multi-turn Conversation', 'Tool Use', 'Agentic in Environment', 'Computer Use'],
+  Language: ['English Only', 'Multilingual', 'Specific Non-English'],
 }
 
 // ── Fake benchmark cards ───────────────────────────────────────────────
@@ -177,259 +177,177 @@ function SourceBadge({ code }) {
   )
 }
 
-// ── View components ────────────────────────────────────────────────────
-
-function EvalCardsView() {
-  const [axisTab, setAxisTab] = useState('domain')
-  const [expanded, setExpanded] = useState(null)
+// ── Axis 1: Domain section ─────────────────────────────────────────────
+function DomainSection() {
+  const [activeDomain, setActiveDomain] = useState(null)
   const [drillSub, setDrillSub] = useState(null)
 
-  const toggle = (name) => {
-    setExpanded(expanded === name ? null : name)
-    setDrillSub(null)
-  }
+  const selected = DOMAINS.find(d => d.name === activeDomain)
 
   return (
-    <div>
-      <p style={styles.viewDesc}>
-        Our combined taxonomy. Browse by axis — click a domain to see sub-themes, then drill into fake benchmark cards.
-      </p>
-      <div style={styles.axisTabs}>
-        {[
-          { key: 'domain', label: 'Axis 1: Domain' },
-          { key: 'property', label: 'Axis 2: Property Tested' },
-          { key: 'facets', label: 'Axes 3-5: Facets' },
-        ].map(t => (
+    <section style={styles.axisSection}>
+      <h2 style={styles.axisTitle}>Axis 1: Domain</h2>
+      <p style={styles.axisDesc}>What the benchmark is about. Click a domain to see sub-themes, then drill into benchmarks.</p>
+
+      <div style={styles.horizTabs}>
+        {DOMAINS.map(d => (
           <button
-            key={t.key}
-            onClick={() => { setAxisTab(t.key); setExpanded(null); setDrillSub(null) }}
-            style={axisTab === t.key ? { ...styles.axisTab, ...styles.axisTabActive } : styles.axisTab}
+            key={d.name}
+            onClick={() => { setActiveDomain(activeDomain === d.name ? null : d.name); setDrillSub(null) }}
+            style={activeDomain === d.name ? { ...styles.horizTab, ...styles.horizTabActive } : styles.horizTab}
           >
-            {t.label}
+            {d.name}
+            <span style={styles.tabCount}>({d.count})</span>
           </button>
         ))}
       </div>
 
-      {axisTab === 'domain' && (
-        <div style={styles.list}>
-          {DOMAINS.map(d => (
-            <div key={d.name}>
-              <div style={styles.domainRow} onClick={() => toggle(d.name)}>
-                <span style={styles.arrow}>{expanded === d.name ? '▼' : '▶'}</span>
-                <span style={styles.domainName}>{d.name}</span>
-                <span style={styles.count}>({d.count})</span>
-                {d.sources.map(s => <SourceBadge key={s} code={s} />)}
-              </div>
-              {expanded === d.name && (
-                <div style={styles.subList}>
-                  {d.subs.map(s => (
-                    <div key={s.name}>
-                      <div
-                        style={drillSub === s.name ? { ...styles.subRow, ...styles.subRowActive } : styles.subRow}
-                        onClick={() => setDrillSub(drillSub === s.name ? null : s.name)}
-                      >
-                        <span style={styles.subName}>{s.name}</span>
-                        <span style={styles.count}>({s.count})</span>
-                        {s.sources.map(sc => <SourceBadge key={sc} code={sc} />)}
-                      </div>
-                      {drillSub === s.name && (
-                        <div style={styles.cardGrid}>
-                          {FAKE_BENCHMARKS.slice(0, Math.max(2, s.count > 10 ? 6 : s.count)).map(b => (
-                            <FakeCard key={b} benchmarkName={b} />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+      {selected && (
+        <div style={styles.drillDown}>
+          <div style={styles.drillHeader}>
+            <h3 style={styles.drillTitle}>{selected.name}</h3>
+            <span style={styles.drillCount}>{selected.count} benchmarks</span>
+            <div style={styles.badgeRow}>
+              {selected.sources.map(s => <SourceBadge key={s} code={s} />)}
             </div>
-          ))}
-        </div>
-      )}
+          </div>
 
-      {axisTab === 'property' && (
-        <div style={styles.list}>
-          {PROPERTIES.map(p => (
-            <div key={p.name} style={styles.domainRow}>
-              <span style={styles.domainName}>{p.name}</span>
-              {p.count && <span style={styles.count}>({p.count})</span>}
-              {p.sources.map(s => <SourceBadge key={s} code={s} />)}
-            </div>
-          ))}
-        </div>
-      )}
+          <div style={styles.subTabs}>
+            {selected.subs.map(s => (
+              <button
+                key={s.name}
+                onClick={() => setDrillSub(drillSub === s.name ? null : s.name)}
+                style={drillSub === s.name ? { ...styles.subTab, ...styles.subTabActive } : styles.subTab}
+              >
+                {s.name}
+                <span style={styles.tabCount}>({s.count})</span>
+                {s.sources.map(sc => <SourceBadge key={sc} code={sc} />)}
+              </button>
+            ))}
+          </div>
 
-      {axisTab === 'facets' && (
-        <div style={styles.list}>
-          {Object.entries(FACETS).map(([facet, values]) => (
-            <div key={facet} style={{ marginBottom: 16 }}>
-              <div style={styles.facetHeader}>{facet}</div>
-              <div style={styles.facetChips}>
-                {values.map(v => (
-                  <span key={v} style={styles.chip}>{v}</span>
-                ))}
-              </div>
+          {drillSub && (
+            <div style={styles.cardGrid}>
+              {FAKE_BENCHMARKS.slice(0, Math.max(3, selected.subs.find(s => s.name === drillSub)?.count > 10 ? 6 : 4)).map(b => (
+                <FakeCard key={b} benchmarkName={b} />
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
-    </div>
+    </section>
   )
 }
 
-function ValsAIView() {
-  const [expanded, setExpanded] = useState(null)
-  const [drillSub, setDrillSub] = useState(null)
+// ── Axis 2: Property Tested section ────────────────────────────────────
+function PropertySection() {
+  const [activeProp, setActiveProp] = useState(null)
 
-  // Vals AI emphasises: Software, Math, Science, Health, Law, Business, Puzzles — all tagged [V]
-  const valsDomains = DOMAINS.filter(d => d.sources.includes('V'))
+  const selected = PROPERTIES.find(p => p.name === activeProp)
 
   return (
-    <div>
-      <p style={styles.viewDesc}>
-        Vals AI-style view. Domains and sub-themes where Vals AI has equivalent categories are shown. Organized by capability area with direct benchmark drill-down.
-      </p>
-      <div style={styles.list}>
-        {valsDomains.map(d => (
-          <div key={d.name}>
-            <div style={styles.domainRow} onClick={() => { setExpanded(expanded === d.name ? null : d.name); setDrillSub(null) }}>
-              <span style={styles.arrow}>{expanded === d.name ? '▼' : '▶'}</span>
-              <span style={styles.domainName}>{d.name}</span>
-              <span style={styles.count}>({d.count})</span>
-              <SourceBadge code="V" />
-            </div>
-            {expanded === d.name && (
-              <div style={styles.subList}>
-                {d.subs.map(s => (
-                  <div key={s.name}>
-                    <div
-                      style={drillSub === s.name ? { ...styles.subRow, ...styles.subRowActive } : styles.subRow}
-                      onClick={() => setDrillSub(drillSub === s.name ? null : s.name)}
-                    >
-                      <span style={styles.subName}>{s.name}</span>
-                      <span style={styles.count}>({s.count})</span>
-                      {s.sources.includes('V') && <SourceBadge code="V" />}
-                    </div>
-                    {drillSub === s.name && (
-                      <div style={styles.cardGrid}>
-                        {FAKE_BENCHMARKS.slice(0, 4).map(b => (
-                          <FakeCard key={b} benchmarkName={b} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+    <section style={styles.axisSection}>
+      <h2 style={styles.axisTitle}>Axis 2: Property Tested</h2>
+      <p style={styles.axisDesc}>What capability or risk is measured.</p>
+
+      <div style={styles.horizTabs}>
+        {PROPERTIES.map(p => (
+          <button
+            key={p.name}
+            onClick={() => setActiveProp(activeProp === p.name ? null : p.name)}
+            style={activeProp === p.name ? { ...styles.horizTab, ...styles.horizTabActive } : styles.horizTab}
+          >
+            {p.name}
+            {p.count && <span style={styles.tabCount}>({p.count})</span>}
+          </button>
         ))}
       </div>
-    </div>
+
+      {selected && (
+        <div style={styles.drillDown}>
+          <div style={styles.drillHeader}>
+            <h3 style={styles.drillTitle}>{selected.name}</h3>
+            <p style={styles.drillDesc}>{selected.fullName}</p>
+            {selected.count && <span style={styles.drillCount}>{selected.count} benchmarks</span>}
+            <div style={styles.badgeRow}>
+              {selected.sources.map(s => <SourceBadge key={s} code={s} />)}
+            </div>
+          </div>
+          <div style={styles.cardGrid}>
+            {FAKE_BENCHMARKS.slice(0, selected.count ? Math.min(6, selected.count) : 4).map(b => (
+              <FakeCard key={b} benchmarkName={b} />
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
   )
 }
 
-function EpochAIView() {
-  const [expanded, setExpanded] = useState(null)
-  const [drillSub, setDrillSub] = useState(null)
+// ── Axes 3-5: Facets section ───────────────────────────────────────────
+function FacetsSection() {
+  const [activeFacet, setActiveFacet] = useState(null)
+  const [activeValue, setActiveValue] = useState(null)
 
-  const epochDomains = DOMAINS.filter(d => d.sources.includes('E'))
-
-  // Epoch also emphasises properties
-  const epochProperties = PROPERTIES.filter(p => p.sources.includes('E'))
+  const facetNames = Object.keys(FACETS)
 
   return (
-    <div>
-      <p style={styles.viewDesc}>
-        Epoch AI-style view. Focuses on domains and properties where Epoch has equivalent categories. Epoch emphasises capability tracking over time.
-      </p>
+    <section style={styles.axisSection}>
+      <h2 style={styles.axisTitle}>Axes 3–5: Other Facets</h2>
+      <p style={styles.axisDesc}>Modality, interaction style, and language.</p>
 
-      <div style={{ ...styles.facetHeader, marginBottom: 12, marginTop: 0 }}>Domains</div>
-      <div style={styles.list}>
-        {epochDomains.map(d => (
-          <div key={d.name}>
-            <div style={styles.domainRow} onClick={() => { setExpanded(expanded === d.name ? null : d.name); setDrillSub(null) }}>
-              <span style={styles.arrow}>{expanded === d.name ? '▼' : '▶'}</span>
-              <span style={styles.domainName}>{d.name}</span>
-              <span style={styles.count}>({d.count})</span>
-              <SourceBadge code="E" />
+      <div style={styles.horizTabs}>
+        {facetNames.map(f => (
+          <button
+            key={f}
+            onClick={() => { setActiveFacet(activeFacet === f ? null : f); setActiveValue(null) }}
+            style={activeFacet === f ? { ...styles.horizTab, ...styles.horizTabActive } : styles.horizTab}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {activeFacet && (
+        <div style={styles.drillDown}>
+          <div style={styles.subTabs}>
+            {FACETS[activeFacet].map(v => (
+              <button
+                key={v}
+                onClick={() => setActiveValue(activeValue === v ? null : v)}
+                style={activeValue === v ? { ...styles.subTab, ...styles.subTabActive } : styles.subTab}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+
+          {activeValue && (
+            <div style={styles.cardGrid}>
+              {FAKE_BENCHMARKS.slice(0, 4).map(b => (
+                <FakeCard key={b} benchmarkName={b} />
+              ))}
             </div>
-            {expanded === d.name && (
-              <div style={styles.subList}>
-                {d.subs.map(s => (
-                  <div key={s.name}>
-                    <div
-                      style={drillSub === s.name ? { ...styles.subRow, ...styles.subRowActive } : styles.subRow}
-                      onClick={() => setDrillSub(drillSub === s.name ? null : s.name)}
-                    >
-                      <span style={styles.subName}>{s.name}</span>
-                      <span style={styles.count}>({s.count})</span>
-                      {s.sources.includes('E') && <SourceBadge code="E" />}
-                    </div>
-                    {drillSub === s.name && (
-                      <div style={styles.cardGrid}>
-                        {FAKE_BENCHMARKS.slice(0, 4).map(b => (
-                          <FakeCard key={b} benchmarkName={b} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div style={{ ...styles.facetHeader, marginBottom: 12, marginTop: 24 }}>Properties Tested</div>
-      <div style={styles.list}>
-        {epochProperties.map(p => (
-          <div key={p.name} style={styles.domainRow}>
-            <span style={styles.domainName}>{p.name}</span>
-            {p.count && <span style={styles.count}>({p.count})</span>}
-            <SourceBadge code="E" />
-          </div>
-        ))}
-      </div>
-    </div>
+          )}
+        </div>
+      )}
+    </section>
   )
 }
 
 // ── Main Mock1 page ────────────────────────────────────────────────────
-const VIEWS = [
-  { key: 'evalcards', label: 'EvalCards' },
-  { key: 'valsai', label: 'Vals AI' },
-  { key: 'epochai', label: 'Epoch AI' },
-]
-
 export default function Mock1() {
-  const [view, setView] = useState('evalcards')
-
   return (
     <div style={styles.page}>
       <header style={styles.header}>
         <a href="/" style={styles.backLink}>&larr; Home</a>
         <h1 style={styles.title}>Taxonomy Explorer — Mock 1</h1>
-        <p style={styles.subtitle}>Compare how different platforms structure AI evaluation benchmarks</p>
+        <p style={styles.subtitle}>Browse the combined EvalCards taxonomy. Each axis is shown below with horizontal tabs — click to drill down.</p>
       </header>
 
-      <nav style={styles.topTabs}>
-        {VIEWS.map(v => (
-          <button
-            key={v.key}
-            onClick={() => setView(v.key)}
-            style={view === v.key ? { ...styles.topTab, ...styles.topTabActive } : styles.topTab}
-          >
-            {v.label}
-          </button>
-        ))}
-      </nav>
-
-      <main style={styles.main}>
-        {view === 'evalcards' && <EvalCardsView />}
-        {view === 'valsai' && <ValsAIView />}
-        {view === 'epochai' && <EpochAIView />}
-      </main>
+      <DomainSection />
+      <PropertySection />
+      <FacetsSection />
 
       <div style={styles.legend}>
         <span style={styles.legendLabel}>Source tags:</span>
@@ -472,122 +390,110 @@ const styles = {
     color: '#94a3b8',
   },
 
-  // Top-level tabs (EvalCards / Vals AI / Epoch AI)
-  topTabs: {
-    display: 'flex',
-    gap: 0,
-    borderBottom: '2px solid #1e293b',
-    padding: '0 32px',
-    background: '#0f1117',
-    position: 'sticky',
-    top: 0,
-    zIndex: 10,
+  // Each axis section
+  axisSection: {
+    padding: '32px 32px 40px',
+    borderBottom: '1px solid #1e293b',
   },
-  topTab: {
-    padding: '12px 24px',
-    background: 'none',
-    border: 'none',
-    borderBottom: '2px solid transparent',
+  axisTitle: {
+    margin: '0 0 4px',
+    fontSize: 20,
+    fontWeight: 600,
+    color: '#f1f5f9',
+  },
+  axisDesc: {
+    margin: '0 0 16px',
+    fontSize: 14,
     color: '#94a3b8',
-    fontSize: 15,
-    fontWeight: 500,
-    cursor: 'pointer',
-    marginBottom: -2,
-    transition: 'color 0.15s, border-color 0.15s',
-  },
-  topTabActive: {
-    color: '#5bacd1',
-    borderBottomColor: '#5bacd1',
   },
 
-  // Axis sub-tabs inside EvalCards view
-  axisTabs: {
+  // Horizontal tabs row (wraps)
+  horizTabs: {
     display: 'flex',
-    gap: 8,
-    marginBottom: 16,
+    flexWrap: 'wrap',
+    gap: 6,
   },
-  axisTab: {
-    padding: '6px 16px',
+  horizTab: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '8px 16px',
     borderRadius: 6,
     border: '1px solid #334155',
     background: 'transparent',
     color: '#94a3b8',
     fontSize: 13,
+    fontWeight: 500,
     cursor: 'pointer',
     transition: 'all 0.15s',
+    whiteSpace: 'nowrap',
   },
-  axisTabActive: {
+  horizTabActive: {
     background: '#1e293b',
     color: '#5bacd1',
     borderColor: '#5bacd1',
   },
-
-  main: {
-    padding: '24px 32px',
-  },
-  viewDesc: {
-    fontSize: 14,
-    color: '#94a3b8',
-    margin: '0 0 20px',
-    lineHeight: 1.5,
-  },
-
-  // Domain list
-  list: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 2,
-  },
-  domainRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '10px 12px',
-    borderRadius: 6,
-    cursor: 'pointer',
-    transition: 'background 0.12s',
-    ':hover': { background: '#1e293b' },
-  },
-  arrow: {
-    fontSize: 10,
+  tabCount: {
+    fontSize: 11,
     color: '#64748b',
-    width: 16,
-    flexShrink: 0,
   },
-  domainName: {
-    fontWeight: 500,
-    fontSize: 15,
-    color: '#e2e8f0',
+
+  // Drill-down area below tabs
+  drillDown: {
+    marginTop: 16,
+    padding: 20,
+    background: '#141820',
+    borderRadius: 10,
+    border: '1px solid #1e293b',
   },
-  count: {
+  drillHeader: {
+    marginBottom: 16,
+  },
+  drillTitle: {
+    margin: '0 0 4px',
+    fontSize: 18,
+    fontWeight: 600,
+    color: '#f1f5f9',
+  },
+  drillDesc: {
+    margin: '0 0 4px',
+    fontSize: 13,
+    color: '#94a3b8',
+  },
+  drillCount: {
     fontSize: 13,
     color: '#64748b',
   },
+  badgeRow: {
+    display: 'flex',
+    gap: 4,
+    marginTop: 6,
+  },
 
-  // Sub-themes
-  subList: {
-    marginLeft: 24,
-    borderLeft: '2px solid #1e293b',
-    paddingLeft: 12,
+  // Sub-theme tabs (inside drill-down)
+  subTabs: {
     display: 'flex',
-    flexDirection: 'column',
-    gap: 1,
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 12,
   },
-  subRow: {
-    display: 'flex',
+  subTab: {
+    display: 'inline-flex',
     alignItems: 'center',
-    gap: 8,
-    padding: '8px 12px',
-    borderRadius: 6,
-    cursor: 'pointer',
-    transition: 'background 0.12s',
-  },
-  subRowActive: {
-    background: '#1e293b',
-  },
-  subName: {
-    fontSize: 14,
+    gap: 6,
+    padding: '6px 14px',
+    borderRadius: 20,
+    border: '1px solid #334155',
+    background: 'transparent',
     color: '#cbd5e1',
+    fontSize: 13,
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+  },
+  subTabActive: {
+    background: '#5bacd1',
+    color: '#fff',
+    borderColor: '#5bacd1',
   },
 
   // Source badges
@@ -606,7 +512,7 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
     gap: 12,
-    padding: '12px 0 12px 12px',
+    marginTop: 12,
   },
   card: {
     background: '#1e293b',
@@ -645,29 +551,6 @@ const styles = {
   cardFooter: {
     fontSize: 11,
     color: '#64748b',
-  },
-
-  // Facets
-  facetHeader: {
-    fontSize: 16,
-    fontWeight: 600,
-    color: '#e2e8f0',
-    marginBottom: 8,
-    marginTop: 8,
-  },
-  facetChips: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 8,
-  },
-  chip: {
-    padding: '6px 14px',
-    borderRadius: 20,
-    background: '#1e293b',
-    border: '1px solid #334155',
-    fontSize: 13,
-    color: '#cbd5e1',
   },
 
   // Legend
