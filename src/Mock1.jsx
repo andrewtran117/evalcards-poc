@@ -437,6 +437,7 @@ const styles = {
     fontSize: 13,
     cursor: 'pointer',
     transition: 'all 0.12s',
+    outline: 'none',
   },
   tabActive: {
     background: '#1e293b',
@@ -510,6 +511,7 @@ const styles = {
     fontSize: 13,
     cursor: 'pointer',
     transition: 'all 0.12s',
+    outline: 'none',
   },
   subTabActive: {
     background: '#5bacd1',
