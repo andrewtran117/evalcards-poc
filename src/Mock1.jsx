@@ -136,11 +136,22 @@ const PROPERTIES = [
   { name: 'Robustness', fullName: 'Adversarial perturbation', count: null, sources: [] },
 ]
 
-const FACETS = {
-  Modality: ['Text', 'Image', 'Video', 'Audio & Speech', 'Documents & Charts', '3D'],
-  'Interaction Style': ['Single-turn QA', 'Multi-turn Conversation', 'Tool Use', 'Agentic in Environment', 'Computer Use'],
-  Language: ['English Only', 'Multilingual', 'Specific Non-English'],
-}
+const FACETS_DATA = [
+  { name: 'Text', facet: 'Modality' },
+  { name: 'Image', facet: 'Modality' },
+  { name: 'Video', facet: 'Modality' },
+  { name: 'Audio & Speech', facet: 'Modality' },
+  { name: 'Documents & Charts', facet: 'Modality' },
+  { name: '3D', facet: 'Modality' },
+  { name: 'Single-turn QA', facet: 'Interaction' },
+  { name: 'Multi-turn Conversation', facet: 'Interaction' },
+  { name: 'Tool Use', facet: 'Interaction' },
+  { name: 'Agentic in Environment', facet: 'Interaction' },
+  { name: 'Computer Use', facet: 'Interaction' },
+  { name: 'English Only', facet: 'Language' },
+  { name: 'Multilingual', facet: 'Language' },
+  { name: 'Non-English', facet: 'Language' },
+]
 
 // ── Fake benchmark cards ───────────────────────────────────────────────
 const FAKE_BENCHMARKS = [
@@ -165,7 +176,7 @@ function FakeCard({ benchmarkName }) {
   )
 }
 
-// ── Source tag badge ───────────────────────────────────────────────────
+// ── Source badge ────────────────────────────────────────────────────────
 const SOURCE_COLORS = { V: '#8b5cf6', E: '#f59e0b', A: '#10b981', L: '#3b82f6' }
 const SOURCE_LABELS = { V: 'Vals AI', E: 'Epoch', A: 'Artificial Analysis', L: 'LLM Stats' }
 
@@ -177,180 +188,184 @@ function SourceBadge({ code }) {
   )
 }
 
-// ── Axis 1: Domain section ─────────────────────────────────────────────
-function DomainSection() {
-  const [activeDomain, setActiveDomain] = useState(null)
-  const [drillSub, setDrillSub] = useState(null)
-
-  const selected = DOMAINS.find(d => d.name === activeDomain)
-
-  return (
-    <section style={styles.axisSection}>
-      <h2 style={styles.axisTitle}>Axis 1: Domain</h2>
-      <p style={styles.axisDesc}>What the benchmark is about. Click a domain to see sub-themes, then drill into benchmarks.</p>
-
-      <div style={styles.horizTabs}>
-        {DOMAINS.map(d => (
-          <button
-            key={d.name}
-            onClick={() => { setActiveDomain(activeDomain === d.name ? null : d.name); setDrillSub(null) }}
-            style={activeDomain === d.name ? { ...styles.horizTab, ...styles.horizTabActive } : styles.horizTab}
-          >
-            {d.name}
-            <span style={styles.tabCount}>({d.count})</span>
-          </button>
-        ))}
-      </div>
-
-      {selected && (
-        <div style={styles.drillDown}>
-          <div style={styles.drillHeader}>
-            <h3 style={styles.drillTitle}>{selected.name}</h3>
-            <span style={styles.drillCount}>{selected.count} benchmarks</span>
-            <div style={styles.badgeRow}>
-              {selected.sources.map(s => <SourceBadge key={s} code={s} />)}
-            </div>
-          </div>
-
-          <div style={styles.subTabs}>
-            {selected.subs.map(s => (
-              <button
-                key={s.name}
-                onClick={() => setDrillSub(drillSub === s.name ? null : s.name)}
-                style={drillSub === s.name ? { ...styles.subTab, ...styles.subTabActive } : styles.subTab}
-              >
-                {s.name}
-                <span style={styles.tabCount}>({s.count})</span>
-                {s.sources.map(sc => <SourceBadge key={sc} code={sc} />)}
-              </button>
-            ))}
-          </div>
-
-          {drillSub && (
-            <div style={styles.cardGrid}>
-              {FAKE_BENCHMARKS.slice(0, Math.max(3, selected.subs.find(s => s.name === drillSub)?.count > 10 ? 6 : 4)).map(b => (
-                <FakeCard key={b} benchmarkName={b} />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </section>
-  )
-}
-
-// ── Axis 2: Property Tested section ────────────────────────────────────
-function PropertySection() {
-  const [activeProp, setActiveProp] = useState(null)
-
-  const selected = PROPERTIES.find(p => p.name === activeProp)
-
-  return (
-    <section style={styles.axisSection}>
-      <h2 style={styles.axisTitle}>Axis 2: Property Tested</h2>
-      <p style={styles.axisDesc}>What capability or risk is measured.</p>
-
-      <div style={styles.horizTabs}>
-        {PROPERTIES.map(p => (
-          <button
-            key={p.name}
-            onClick={() => setActiveProp(activeProp === p.name ? null : p.name)}
-            style={activeProp === p.name ? { ...styles.horizTab, ...styles.horizTabActive } : styles.horizTab}
-          >
-            {p.name}
-            {p.count && <span style={styles.tabCount}>({p.count})</span>}
-          </button>
-        ))}
-      </div>
-
-      {selected && (
-        <div style={styles.drillDown}>
-          <div style={styles.drillHeader}>
-            <h3 style={styles.drillTitle}>{selected.name}</h3>
-            <p style={styles.drillDesc}>{selected.fullName}</p>
-            {selected.count && <span style={styles.drillCount}>{selected.count} benchmarks</span>}
-            <div style={styles.badgeRow}>
-              {selected.sources.map(s => <SourceBadge key={s} code={s} />)}
-            </div>
-          </div>
-          <div style={styles.cardGrid}>
-            {FAKE_BENCHMARKS.slice(0, selected.count ? Math.min(6, selected.count) : 4).map(b => (
-              <FakeCard key={b} benchmarkName={b} />
-            ))}
-          </div>
-        </div>
-      )}
-    </section>
-  )
-}
-
-// ── Axes 3-5: Facets section ───────────────────────────────────────────
-function FacetsSection() {
-  const [activeFacet, setActiveFacet] = useState(null)
-  const [activeValue, setActiveValue] = useState(null)
-
-  const facetNames = Object.keys(FACETS)
-
-  return (
-    <section style={styles.axisSection}>
-      <h2 style={styles.axisTitle}>Axes 3–5: Other Facets</h2>
-      <p style={styles.axisDesc}>Modality, interaction style, and language.</p>
-
-      <div style={styles.horizTabs}>
-        {facetNames.map(f => (
-          <button
-            key={f}
-            onClick={() => { setActiveFacet(activeFacet === f ? null : f); setActiveValue(null) }}
-            style={activeFacet === f ? { ...styles.horizTab, ...styles.horizTabActive } : styles.horizTab}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
-
-      {activeFacet && (
-        <div style={styles.drillDown}>
-          <div style={styles.subTabs}>
-            {FACETS[activeFacet].map(v => (
-              <button
-                key={v}
-                onClick={() => setActiveValue(activeValue === v ? null : v)}
-                style={activeValue === v ? { ...styles.subTab, ...styles.subTabActive } : styles.subTab}
-              >
-                {v}
-              </button>
-            ))}
-          </div>
-
-          {activeValue && (
-            <div style={styles.cardGrid}>
-              {FAKE_BENCHMARKS.slice(0, 4).map(b => (
-                <FakeCard key={b} benchmarkName={b} />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-    </section>
-  )
-}
-
-// ── Main Mock1 page ────────────────────────────────────────────────────
+// ── Main page ──────────────────────────────────────────────────────────
 export default function Mock1() {
+  // Single piece of state for the entire tab bar — only one thing active at a time
+  const [activeTab, setActiveTab] = useState(null)   // { type: 'domain'|'property'|'facet', name: string }
+  const [activeSub, setActiveSub] = useState(null)
+
+  const handleTab = (type, name) => {
+    if (activeTab?.type === type && activeTab?.name === name) {
+      setActiveTab(null)
+      setActiveSub(null)
+    } else {
+      setActiveTab({ type, name })
+      setActiveSub(null)
+    }
+  }
+
+  const handleSub = (name) => {
+    setActiveSub(activeSub === name ? null : name)
+  }
+
+  const isActive = (type, name) => activeTab?.type === type && activeTab?.name === name
+
+  // Resolve what to show in drill-down
+  const selectedDomain = activeTab?.type === 'domain' ? DOMAINS.find(d => d.name === activeTab.name) : null
+  const selectedProp = activeTab?.type === 'property' ? PROPERTIES.find(p => p.name === activeTab.name) : null
+  const selectedFacet = activeTab?.type === 'facet' ? activeTab.name : null
+
   return (
     <div style={styles.page}>
       <header style={styles.header}>
         <a href="/" style={styles.backLink}>&larr; Home</a>
-        <h1 style={styles.title}>Taxonomy Explorer — Mock 1</h1>
-        <p style={styles.subtitle}>Browse the combined EvalCards taxonomy. Each axis is shown below with horizontal tabs — click to drill down.</p>
+        <h1 style={styles.title}>EvalCards Taxonomy Explorer</h1>
       </header>
 
-      <DomainSection />
-      <PropertySection />
-      <FacetsSection />
+      {/* Unified tab bar */}
+      <nav style={styles.tabBar}>
+        {/* Domain group */}
+        <div style={styles.tabGroup}>
+          <div style={styles.groupLabel}>Domain</div>
+          <div style={styles.groupTabs}>
+            {DOMAINS.map(d => (
+              <button
+                key={d.name}
+                onClick={() => handleTab('domain', d.name)}
+                style={isActive('domain', d.name) ? { ...styles.tab, ...styles.tabActive } : styles.tab}
+              >
+                {d.name}
+                <span style={styles.tabCount}>{d.count}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={styles.divider} />
+
+        {/* Property group */}
+        <div style={styles.tabGroup}>
+          <div style={styles.groupLabel}>Property</div>
+          <div style={styles.groupTabs}>
+            {PROPERTIES.map(p => (
+              <button
+                key={p.name}
+                onClick={() => handleTab('property', p.name)}
+                style={isActive('property', p.name) ? { ...styles.tab, ...styles.tabActive } : styles.tab}
+              >
+                {p.name}
+                {p.count && <span style={styles.tabCount}>{p.count}</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={styles.divider} />
+
+        {/* Facets group */}
+        <div style={styles.tabGroup}>
+          <div style={styles.groupLabel}>Facets</div>
+          <div style={styles.groupTabs}>
+            {['Modality', 'Interaction', 'Language'].map(f => (
+              <button
+                key={f}
+                onClick={() => handleTab('facet', f)}
+                style={isActive('facet', f) ? { ...styles.tab, ...styles.tabActive } : styles.tab}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        </div>
+      </nav>
+
+      {/* Drill-down panel */}
+      <main style={styles.main}>
+        {!activeTab && (
+          <div style={styles.empty}>Select a tab above to explore benchmarks</div>
+        )}
+
+        {selectedDomain && (
+          <div>
+            <div style={styles.panelHeader}>
+              <h2 style={styles.panelTitle}>{selectedDomain.name}</h2>
+              <span style={styles.panelCount}>{selectedDomain.count} benchmarks</span>
+              <div style={styles.badgeRow}>
+                {selectedDomain.sources.map(s => <SourceBadge key={s} code={s} />)}
+              </div>
+            </div>
+
+            <div style={styles.subTabs}>
+              {selectedDomain.subs.map(s => (
+                <button
+                  key={s.name}
+                  onClick={() => handleSub(s.name)}
+                  style={activeSub === s.name ? { ...styles.subTab, ...styles.subTabActive } : styles.subTab}
+                >
+                  {s.name}
+                  <span style={styles.subCount}>{s.count}</span>
+                  {s.sources.map(sc => <SourceBadge key={sc} code={sc} />)}
+                </button>
+              ))}
+            </div>
+
+            {activeSub && (
+              <div style={styles.cardGrid}>
+                {FAKE_BENCHMARKS.slice(0, Math.max(3, selectedDomain.subs.find(s => s.name === activeSub)?.count > 10 ? 6 : 4)).map(b => (
+                  <FakeCard key={b} benchmarkName={b} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {selectedProp && (
+          <div>
+            <div style={styles.panelHeader}>
+              <h2 style={styles.panelTitle}>{selectedProp.name}</h2>
+              <p style={styles.panelDesc}>{selectedProp.fullName}</p>
+              {selectedProp.count && <span style={styles.panelCount}>{selectedProp.count} benchmarks</span>}
+              <div style={styles.badgeRow}>
+                {selectedProp.sources.map(s => <SourceBadge key={s} code={s} />)}
+              </div>
+            </div>
+            <div style={styles.cardGrid}>
+              {FAKE_BENCHMARKS.slice(0, selectedProp.count ? Math.min(6, selectedProp.count) : 4).map(b => (
+                <FakeCard key={b} benchmarkName={b} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {selectedFacet && (
+          <div>
+            <div style={styles.panelHeader}>
+              <h2 style={styles.panelTitle}>{selectedFacet}</h2>
+            </div>
+            <div style={styles.subTabs}>
+              {FACETS_DATA.filter(f => f.facet === selectedFacet).map(f => (
+                <button
+                  key={f.name}
+                  onClick={() => handleSub(f.name)}
+                  style={activeSub === f.name ? { ...styles.subTab, ...styles.subTabActive } : styles.subTab}
+                >
+                  {f.name}
+                </button>
+              ))}
+            </div>
+            {activeSub && (
+              <div style={styles.cardGrid}>
+                {FAKE_BENCHMARKS.slice(0, 4).map(b => (
+                  <FakeCard key={b} benchmarkName={b} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </main>
 
       <div style={styles.legend}>
-        <span style={styles.legendLabel}>Source tags:</span>
+        <span style={styles.legendLabel}>Sources:</span>
         {Object.entries(SOURCE_LABELS).map(([code, label]) => (
           <span key={code} style={styles.legendItem}>
             <SourceBadge code={code} /> {label}
@@ -370,97 +385,103 @@ const styles = {
     fontFamily: "system-ui, -apple-system, 'Segoe UI', sans-serif",
   },
   header: {
-    padding: '24px 32px 16px',
+    padding: '20px 32px 12px',
     borderBottom: '1px solid #1e293b',
   },
   backLink: {
     color: '#5bacd1',
     textDecoration: 'none',
-    fontSize: 14,
+    fontSize: 13,
   },
   title: {
-    margin: '8px 0 4px',
-    fontSize: 24,
+    margin: '6px 0 0',
+    fontSize: 22,
     fontWeight: 600,
     color: '#f1f5f9',
   },
-  subtitle: {
-    margin: 0,
-    fontSize: 14,
-    color: '#94a3b8',
-  },
 
-  // Each axis section
-  axisSection: {
-    padding: '32px 32px 40px',
+  // Unified tab bar
+  tabBar: {
+    padding: '16px 32px',
     borderBottom: '1px solid #1e293b',
+    background: '#12141c',
+    position: 'sticky',
+    top: 0,
+    zIndex: 10,
   },
-  axisTitle: {
-    margin: '0 0 4px',
-    fontSize: 20,
+  tabGroup: {
+    marginBottom: 12,
+  },
+  groupLabel: {
+    fontSize: 11,
     fontWeight: 600,
-    color: '#f1f5f9',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    color: '#64748b',
+    marginBottom: 6,
   },
-  axisDesc: {
-    margin: '0 0 16px',
-    fontSize: 14,
-    color: '#94a3b8',
-  },
-
-  // Horizontal tabs row (wraps)
-  horizTabs: {
+  groupTabs: {
     display: 'flex',
     flexWrap: 'wrap',
-    gap: 6,
+    gap: 4,
   },
-  horizTab: {
+  tab: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: 6,
-    padding: '8px 16px',
-    borderRadius: 6,
-    border: '1px solid #334155',
+    gap: 5,
+    padding: '5px 12px',
+    borderRadius: 5,
+    border: '1px solid transparent',
     background: 'transparent',
     color: '#94a3b8',
     fontSize: 13,
-    fontWeight: 500,
     cursor: 'pointer',
-    transition: 'all 0.15s',
-    whiteSpace: 'nowrap',
+    transition: 'all 0.12s',
   },
-  horizTabActive: {
+  tabActive: {
     background: '#1e293b',
     color: '#5bacd1',
     borderColor: '#5bacd1',
   },
   tabCount: {
     fontSize: 11,
-    color: '#64748b',
+    color: '#4a5568',
+    fontWeight: 400,
+  },
+  divider: {
+    height: 1,
+    background: '#1e293b',
+    margin: '8px 0',
   },
 
-  // Drill-down area below tabs
-  drillDown: {
-    marginTop: 16,
-    padding: 20,
-    background: '#141820',
-    borderRadius: 10,
-    border: '1px solid #1e293b',
+  // Main content
+  main: {
+    padding: '24px 32px',
+    minHeight: 400,
   },
-  drillHeader: {
-    marginBottom: 16,
+  empty: {
+    color: '#4a5568',
+    fontSize: 15,
+    textAlign: 'center',
+    padding: '80px 0',
   },
-  drillTitle: {
+
+  // Panel header
+  panelHeader: {
+    marginBottom: 20,
+  },
+  panelTitle: {
     margin: '0 0 4px',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 600,
     color: '#f1f5f9',
   },
-  drillDesc: {
+  panelDesc: {
     margin: '0 0 4px',
-    fontSize: 13,
+    fontSize: 14,
     color: '#94a3b8',
   },
-  drillCount: {
+  panelCount: {
     fontSize: 13,
     color: '#64748b',
   },
@@ -470,12 +491,12 @@ const styles = {
     marginTop: 6,
   },
 
-  // Sub-theme tabs (inside drill-down)
+  // Sub-theme pills
   subTabs: {
     display: 'flex',
     flexWrap: 'wrap',
     gap: 6,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   subTab: {
     display: 'inline-flex',
@@ -488,12 +509,16 @@ const styles = {
     color: '#cbd5e1',
     fontSize: 13,
     cursor: 'pointer',
-    transition: 'all 0.15s',
+    transition: 'all 0.12s',
   },
   subTabActive: {
     background: '#5bacd1',
     color: '#fff',
     borderColor: '#5bacd1',
+  },
+  subCount: {
+    fontSize: 11,
+    opacity: 0.6,
   },
 
   // Source badges
@@ -501,13 +526,13 @@ const styles = {
     display: 'inline-block',
     padding: '1px 6px',
     borderRadius: 4,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 600,
     color: '#fff',
     letterSpacing: 0.5,
   },
 
-  // Benchmark cards grid
+  // Cards
   cardGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
